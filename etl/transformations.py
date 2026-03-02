@@ -5,8 +5,8 @@ Handles all data quality issues and transformations for the raw Superstore datas
 
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import (
-    col, when, to_date, to_timestamp, year, month, dayofmonth,
-    dayofweek, date_format, lit, trim, upper, coalesce, concat, rand
+    col, when, to_date, try_to_date, to_timestamp, try_to_timestamp, year, month, dayofmonth,
+    dayofweek, date_format, lit, trim, upper, coalesce, concat, rand, expr
 )
 from pyspark.sql.types import TimestampType, DateType
 import logging
@@ -25,62 +25,86 @@ class DataCleaner:
         self.store_count = 5
     
     def load_csv(self, file_path: str) -> DataFrame:
-        """Load CSV file with proper schema inference."""
+        """Load CSV file with explicit type enforcement using try_cast."""
         logger.info(f"Loading CSV from {file_path}")
-        
+
+        # Load CSV without schema inference - all columns come as strings
         df = self.spark.read.option("header", "true") \
-            .option("inferSchema", "true") \
+            .option("inferSchema", "false") \
             .option("encoding", "UTF-8") \
             .csv(file_path)
-        
+
+        # Use expr with try_cast to safely convert numeric columns
+        # try_cast returns NULL for malformed values instead of throwing error
+        df = df.withColumn("Sales", expr("try_cast(Sales as double)"))
+        df = df.withColumn("Quantity", expr("try_cast(Quantity as double)"))
+        df = df.withColumn("Discount", expr("try_cast(Discount as double)"))
+        df = df.withColumn("Profit", expr("try_cast(Profit as double)"))
+        df = df.withColumn("Postal Code", expr("try_cast(`Postal Code` as int)"))
+
         row_count = df.count()
-        logger.info(f"Loaded {row_count} rows from CSV")
+        logger.info(f"Loaded {row_count} rows from CSV with explicit numeric types")
         return df
     
     def standardize_dates(self, df: DataFrame) -> DataFrame:
         """
         Standardize inconsistent date formats.
-        Handles formats like: 11-08-2016, 6/16/2016, MM/dd/yyyy, MM-dd-yyyy
+        Handles formats like: 11-08-2016, 6/16/2016, MM/dd/yyyy, MM-dd-yyyy, M/d/yyyy
         """
         logger.info("Standardizing date formats...")
         
-        # Handle Order Date - try multiple formats
+        # Get total row count for logging
+        total_rows = df.count()
+        logger.info(f"Total rows to process: {total_rows}")
+
+        # Handle Order Date - try multiple formats in priority order
+        # Order matters: try most specific formats first
         df = df.withColumn(
             "order_date_parsed",
             coalesce(
-                to_date(col("Order Date"), "MM/dd/yyyy"),
-                to_date(col("Order Date"), "MM-dd-yyyy"),
-                to_date(col("Order Date"), "yyyy-MM-dd"),
-                to_date(col("Order Date"), "dd/MM/yyyy"),
-                to_date(col("Order Date"), "dd-MM-yyyy")
+                try_to_date(col("Order Date"), "MM-dd-yyyy"),  # 11-08-2016
+                try_to_date(col("Order Date"), "M-d-yyyy"),    # 1-8-2016
+                try_to_date(col("Order Date"), "M/d/yyyy"),    # 6/16/2016
+                try_to_date(col("Order Date"), "MM/dd/yyyy"),  # 11/08/2016
+                try_to_date(col("Order Date"), "yyyy-MM-dd"),  # 2016-11-08
+                try_to_date(col("Order Date"), "dd-MM-yyyy"),  # 08-11-2016
+                try_to_date(col("Order Date"), "d/M/yyyy")     # 8/11/2016
             )
         )
-        
-        # Handle Ship Date - try multiple formats
+
+        # Handle Ship Date - try multiple formats in priority order
         df = df.withColumn(
             "ship_date_parsed",
             coalesce(
-                to_date(col("Ship Date"), "MM/dd/yyyy"),
-                to_date(col("Ship Date"), "MM-dd-yyyy"),
-                to_date(col("Ship Date"), "yyyy-MM-dd"),
-                to_date(col("Ship Date"), "dd/MM/yyyy"),
-                to_date(col("Ship Date"), "dd-MM-yyyy")
+                try_to_date(col("Ship Date"), "MM-dd-yyyy"),  # 11-08-2016
+                try_to_date(col("Ship Date"), "M-d-yyyy"),    # 1-8-2016
+                try_to_date(col("Ship Date"), "M/d/yyyy"),    # 6/16/2016
+                try_to_date(col("Ship Date"), "MM/dd/yyyy"),  # 11/08/2016
+                try_to_date(col("Ship Date"), "yyyy-MM-dd"),  # 2016-11-08
+                try_to_date(col("Ship Date"), "dd-MM-yyyy"),  # 08-11-2016
+                try_to_date(col("Ship Date"), "d/M/yyyy")     # 8/11/2016
             )
         )
-        
-        # Convert to timestamp
-        df = df.withColumn("order_timestamp", to_timestamp(col("order_date_parsed")))
-        df = df.withColumn("ship_timestamp", to_timestamp(col("ship_date_parsed")))
-        
-        # Log any null dates
+
+        # Convert to timestamp using try_to_timestamp
+        df = df.withColumn("order_timestamp", try_to_timestamp(col("order_date_parsed")))
+        df = df.withColumn("ship_timestamp", try_to_timestamp(col("ship_date_parsed")))
+
+        # Log parsing results
         null_order_dates = df.filter(col("order_timestamp").isNull()).count()
         null_ship_dates = df.filter(col("ship_timestamp").isNull()).count()
         
-        if null_order_dates > 0:
-            logger.warning(f"Found {null_order_dates} rows with unparseable Order Date")
-        if null_ship_dates > 0:
-            logger.warning(f"Found {null_ship_dates} rows with unparseable Ship Date")
+        parsed_order_dates = total_rows - null_order_dates
+        parsed_ship_dates = total_rows - null_ship_dates
         
+        logger.info(f"Order Date parsing results:")
+        logger.info(f"  - Successfully parsed: {parsed_order_dates} / {total_rows} ({100*parsed_order_dates/total_rows:.1f}%)")
+        logger.info(f"  - Failed to parse (null): {null_order_dates} / {total_rows} ({100*null_order_dates/total_rows:.1f}%)")
+        
+        logger.info(f"Ship Date parsing results:")
+        logger.info(f"  - Successfully parsed: {parsed_ship_dates} / {total_rows} ({100*parsed_ship_dates/total_rows:.1f}%)")
+        logger.info(f"  - Failed to parse (null): {null_ship_dates} / {total_rows} ({100*null_ship_dates/total_rows:.1f}%)")
+
         return df
     
     def add_synthetic_store(self, df: DataFrame) -> DataFrame:
@@ -154,22 +178,25 @@ class DataCleaner:
         Applies all cleaning and transformation steps.
         """
         logger.info("Starting data cleaning and transformation pipeline...")
-        
+
         # Step 1: Standardize dates
         df = self.standardize_dates(df)
-        
+
         # Step 2: Add synthetic store
         df = self.add_synthetic_store(df)
-        
+
         # Step 3: Remove duplicates
         df = self.remove_duplicates(df)
-        
+
         # Step 4: Handle nulls
         df = self.handle_nulls(df)
-        
+
         # Step 5: Create derived fields
         df = self.create_derived_fields(df)
-        
+
+        # Note: Numeric types already enforced in load_csv()
+        # No additional casting needed here
+
         # Select and rename columns for star schema
         df = df.select(
             col("Row ID").alias("row_id"),
@@ -201,8 +228,8 @@ class DataCleaner:
             col("is_weekend").alias("is_weekend"),
             col("revenue").alias("revenue")
         )
-        
+
         final_count = df.count()
         logger.info(f"Transformation complete. Final row count: {final_count}")
-        
+
         return df

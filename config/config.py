@@ -9,6 +9,32 @@ from pathlib import Path
 # Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 
+# Hadoop Configuration for Windows
+# Required for PySpark to run on Windows
+if os.name == 'nt':  # Windows
+    hadoop_home = os.environ.get('HADOOP_HOME')
+    if not hadoop_home:
+        # Try common Hadoop winutils locations
+        for potential_path in [r"c:\hadoop", r"C:\hadoop", r"c:\winutils", r"C:\winutils"]:
+            if os.path.exists(os.path.join(potential_path, "bin", "winutils.exe")):
+                os.environ['HADOOP_HOME'] = potential_path
+                break
+        else:
+            # Default to c:\hadoop if it exists
+            if os.path.exists(r"c:\hadoop\bin\winutils.exe"):
+                os.environ['HADOOP_HOME'] = r"c:\hadoop"
+    
+    # Add Hadoop bin to PATH if HADOOP_HOME is set
+    if 'HADOOP_HOME' in os.environ:
+        hadoop_bin = os.path.join(os.environ['HADOOP_HOME'], 'bin')
+        if hadoop_bin not in os.environ.get('PATH', ''):
+            os.environ['PATH'] = hadoop_bin + os.pathsep + os.environ.get('PATH', '')
+    
+    # Set Python executable explicitly to avoid Windows Store alias
+    import sys
+    os.environ['PYSPARK_PYTHON'] = sys.executable
+    os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+
 # Database Configuration
 DB_CONFIG = {
     "host": "localhost",

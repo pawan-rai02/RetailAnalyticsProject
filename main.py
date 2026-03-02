@@ -43,8 +43,8 @@ def create_spark_session():
     """Create and configure Spark session."""
     logger = logging.getLogger(__name__)
     logger.info("Creating Spark session...")
-    
-    # Build Spark session with JDBC driver
+
+    # Build Spark session with JDBC driver and Windows-compatible settings
     spark = SparkSession.builder \
         .appName(SPARK_CONFIG["appName"]) \
         .master(SPARK_CONFIG["master"]) \
@@ -53,14 +53,18 @@ def create_spark_session():
         .config("spark.sql.shuffle.partitions", SPARK_CONFIG["sql.shuffle.partitions"]) \
         .config("spark.sql.adaptive.enabled", SPARK_CONFIG["sql.adaptive.enabled"]) \
         .config("spark.jars", str(JDBC_DRIVER_JAR)) \
+        .config("spark.python.worker.timeout", "600") \
+        .config("spark.sql.execution.pyspark.udf.faulthandler.enabled", "true") \
+        .config("spark.python.worker.faulthandler.enabled", "true") \
+        .config("spark.sql.sources.parallelPartitionDiscovery.parallelism", "1") \
         .getOrCreate()
-    
+
     # Set log level
     spark.sparkContext.setLogLevel("WARN")
-    
+
     logger.info(f"Spark session created: {spark.sparkContext.appName}")
     logger.info(f"Spark version: {spark.version}")
-    
+
     return spark
 
 
@@ -118,18 +122,18 @@ def verify_results(spark):
     logger.info("=" * 60)
     logger.info("Verifying Results")
     logger.info("=" * 60)
-    
+
     # Read back from MySQL to verify
-    tables = TABLES["dimensions"].copy()
-    tables["fact"] = TABLES["fact"]
-    
+    tables = TABLES["dimensions"]
+    fact_table = TABLES["fact"]
+
     results = {}
-    for table_name, table_full in [("dim_product", tables["dim_product"]),
-                                    ("dim_customer", tables["dim_customer"]),
-                                    ("dim_location", tables["dim_location"]),
-                                    ("dim_store", tables["dim_store"]),
-                                    ("dim_date", tables["dim_date"]),
-                                    ("sales_fact", tables["fact"])]:
+    for table_name, table_full in [("dim_product", tables["product"]),
+                                    ("dim_customer", tables["customer"]),
+                                    ("dim_location", tables["location"]),
+                                    ("dim_store", tables["store"]),
+                                    ("dim_date", tables["date"]),
+                                    ("sales_fact", fact_table)]:
         try:
             df = spark.read.jdbc(url=JDBC_URL, table=table_full, properties=JDBC_PROPERTIES)
             count = df.count()
@@ -138,7 +142,7 @@ def verify_results(spark):
         except Exception as e:
             logger.error(f"Error reading {table_name}: {e}")
             results[table_name] = -1
-    
+
     return results
 
 
@@ -166,9 +170,9 @@ def main():
         sys.exit(1)
     
     try:
-        # Initialize database schema
+        # Initialize database schema and truncate existing tables
         logger.info("Initializing database schema...")
-        if not init_database():
+        if not init_database(truncate_existing=True):
             logger.error("Database initialization failed!")
             sys.exit(1)
         

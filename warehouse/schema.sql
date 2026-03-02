@@ -113,8 +113,8 @@ DROP TABLE IF EXISTS sales_fact;
 CREATE TABLE sales_fact (
     sales_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id VARCHAR(50) NOT NULL,
-    order_date TIMESTAMP NOT NULL,
-    ship_date TIMESTAMP NOT NULL,
+    order_date TIMESTAMP NULL,
+    ship_date TIMESTAMP NULL,
     ship_mode VARCHAR(50) NOT NULL,
     
     -- Foreign Keys
@@ -123,21 +123,21 @@ CREATE TABLE sales_fact (
     location_key INT NOT NULL,
     date_key INT NOT NULL,
     store_key INT NOT NULL,
-    
+
     -- Measures
     sales DECIMAL(15, 2) NOT NULL,
-    quantity INT NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
     discount DECIMAL(10, 4) NOT NULL,
     profit DECIMAL(15, 2) NOT NULL,
     revenue DECIMAL(15, 2) NOT NULL,
-    
+
     -- Derived fields
     order_year INT NOT NULL,
     order_month INT NOT NULL,
     order_day INT NOT NULL,
     day_of_week INT NOT NULL,
     is_weekend BOOLEAN NOT NULL,
-    
+
     -- Audit columns
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
