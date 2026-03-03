@@ -290,7 +290,7 @@ def create_title_page(
 ) -> None:
     """
     Create a professional title page for the PDF report.
-    
+
     Args:
         pdf: PdfPages object
         title: Main title
@@ -299,14 +299,18 @@ def create_title_page(
     """
     if generated_date is None:
         generated_date = datetime.now().strftime("%B %Y")
+
+    # Use default font for PDF compatibility on Windows
+    original_family = plt.rcParams['font.family']
+    plt.rcParams['font.family'] = 'DejaVu Sans'
     
     fig = plt.figure(figsize=(8.5, 11))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis('off')
-    
+
     # Background gradient
     ax.set_facecolor('#F8F9FA')
-    
+
     # Title
     ax.text(
         0.5, 0.65, title,
@@ -314,7 +318,7 @@ def create_title_page(
         fontsize=28, fontweight='bold',
         color=COLOR_PALETTE['primary']
     )
-    
+
     # Subtitle
     ax.text(
         0.5, 0.55, subtitle,
@@ -322,12 +326,12 @@ def create_title_page(
         fontsize=18,
         color=COLOR_PALETTE['secondary']
     )
-    
+
     # Divider line
-    ax.plot([0.2, 0.8], [0.5, 0.5], 
-            color=COLOR_PALETTE['primary'], 
+    ax.plot([0.2, 0.8], [0.5, 0.5],
+            color=COLOR_PALETTE['primary'],
             linewidth=2, alpha=0.5)
-    
+
     # Generated date
     ax.text(
         0.5, 0.40, f"Generated: {generated_date}",
@@ -335,7 +339,7 @@ def create_title_page(
         fontsize=12,
         color=COLOR_PALETTE['neutral']
     )
-    
+
     # Footer
     ax.text(
         0.5, 0.10, "Retail Analytics Data Engineering Pipeline\nPhase 3: Analytics & Visualization Layer",
@@ -344,22 +348,29 @@ def create_title_page(
         color=COLOR_PALETTE['neutral'],
         style='italic'
     )
-    
+
     pdf.savefig(fig, bbox_inches='tight')
     plt.close(fig)
+    
+    # Restore original font
+    plt.rcParams['font.family'] = original_family
 
 
 def create_kpi_summary_page(pdf: PdfPages) -> None:
     """
     Create a KPI summary page with key metrics.
-    
+
     Args:
         pdf: PdfPages object
     """
+    # Use default font for PDF compatibility on Windows
+    original_family = plt.rcParams['font.family']
+    plt.rcParams['font.family'] = 'DejaVu Sans'
+    
     fig = plt.figure(figsize=(8.5, 11))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis('off')
-    
+
     # Title
     ax.text(
         0.5, 0.92, "Key Performance Indicators Summary",
@@ -367,37 +378,37 @@ def create_kpi_summary_page(pdf: PdfPages) -> None:
         fontsize=20, fontweight='bold',
         color=COLOR_PALETTE['primary']
     )
-    
+
     # Divider
-    ax.plot([0.15, 0.85], [0.87, 0.87], 
-            color=COLOR_PALETTE['primary'], 
+    ax.plot([0.15, 0.85], [0.87, 0.87],
+            color=COLOR_PALETTE['primary'],
             linewidth=2, alpha=0.5)
-    
+
     try:
         # Fetch KPIs
         total_rev_df = get_total_revenue()
         yearly_df = get_yearly_revenue()
-        
+
         # Extract metrics
         total_revenue = total_rev_df['total_revenue'].iloc[0] if not total_rev_df.empty else 0
         total_transactions = total_rev_df['total_transactions'].iloc[0] if not total_rev_df.empty else 0
         avg_order_value = total_rev_df['avg_transaction_value'].iloc[0] if not total_rev_df.empty else 0
-        
+
         # KPI boxes
         kpis = [
             ("Total Revenue", f"${total_revenue:,.2f}", COLOR_PALETTE['primary']),
             ("Total Transactions", f"{int(total_transactions):,}", COLOR_PALETTE['secondary']),
             ("Avg Order Value", f"${avg_order_value:,.2f}", COLOR_PALETTE['accent']),
         ]
-        
+
         # Draw KPI boxes
         box_width = 0.25
         box_height = 0.12
         start_x = 0.125
-        
+
         for i, (label, value, color) in enumerate(kpis):
             x = start_x + i * box_width
-            
+
             # Box
             rect = plt.Rectangle(
                 (x, 0.65), box_width - 0.02, box_height,
@@ -405,7 +416,7 @@ def create_kpi_summary_page(pdf: PdfPages) -> None:
                 edgecolor=color, linewidth=2
             )
             ax.add_patch(rect)
-            
+
             # Label
             ax.text(
                 x + (box_width - 0.02) / 2, 0.72,
@@ -413,7 +424,7 @@ def create_kpi_summary_page(pdf: PdfPages) -> None:
                 ha='center', va='center',
                 fontsize=11, color=COLOR_PALETTE['neutral']
             )
-            
+
             # Value
             ax.text(
                 x + (box_width - 0.02) / 2, 0.68,
@@ -422,18 +433,18 @@ def create_kpi_summary_page(pdf: PdfPages) -> None:
                 fontsize=18, fontweight='bold',
                 color=color
             )
-        
+
         # Data quality note
         note_text = """
 📊 Data Source: MySQL Star Schema (Phase 1 ETL Pipeline)
 
-This report presents analytics computed from the retail data warehouse 
+This report presents analytics computed from the retail data warehouse
 containing transaction data processed through the PySpark ETL pipeline.
 
-Metrics are calculated using SQL queries with proper star schema JOINs 
+Metrics are calculated using SQL queries with proper star schema JOINs
 and window functions for accurate business intelligence.
         """
-        
+
         ax.text(
             0.15, 0.50, note_text.strip(),
             ha='left', va='top',
@@ -441,15 +452,15 @@ and window functions for accurate business intelligence.
             color=COLOR_PALETTE['neutral'],
             family='monospace'
         )
-        
+
         # Report sections preview
         sections = [
             "📈 Revenue Trends",
-            "🏆 Product Performance", 
+            "🏆 Product Performance",
             "👥 Customer Analytics",
             "🏬 Store & Regional Analysis"
         ]
-        
+
         for i, section in enumerate(sections):
             ax.text(
                 0.15, 0.35 - i * 0.08,
@@ -458,7 +469,7 @@ and window functions for accurate business intelligence.
                 fontsize=12,
                 color=COLOR_PALETTE['primary']
             )
-            
+
     except Exception as e:
         ax.text(
             0.5, 0.5,
@@ -467,9 +478,12 @@ and window functions for accurate business intelligence.
             fontsize=12,
             color=COLOR_PALETTE['danger']
         )
-    
+
     pdf.savefig(fig, bbox_inches='tight')
     plt.close(fig)
+    
+    # Restore original font
+    plt.rcParams['font.family'] = original_family
 
 
 def generate_pdf_report(
@@ -478,36 +492,39 @@ def generate_pdf_report(
 ) -> str:
     """
     Generate a comprehensive PDF analytics report.
-    
+
     Args:
         output_path: Path to save the PDF report
         include_visualizations: List of visualization names to include
                                (uses all KEY_VISUALIZATIONS if None)
-        
+
     Returns:
         Absolute path to saved PDF
-        
+
     Raises:
         Exception: If report generation fails
     """
     if include_visualizations is None:
         include_visualizations = list(KEY_VISUALIZATIONS.keys())
-    
+
     # Ensure output directory exists
     output_dir = os.path.dirname(output_path)
     if output_dir:
         ensure_directory(output_dir)
-    
+
     print("\n" + "=" * 70)
     print("  GENERATING PDF ANALYTICS REPORT")
     print("=" * 70)
     print(f"\n📄 Output file: {output_path}")
     print(f"📊 Visualizations to include: {len(include_visualizations)}")
     print("-" * 70)
-    
+
     # Setup matplotlib style
     setup_style()
     
+    # Store original font setting
+    original_family = plt.rcParams['font.family']
+
     try:
         # Create PDF
         with PdfPages(output_path) as pdf:
@@ -515,48 +532,56 @@ def generate_pdf_report(
             print("\n▶  Creating title page...")
             create_title_page(pdf)
             print("   ✅ Title page created")
-            
+
             # KPI summary page
             print("\n▶  Creating KPI summary page...")
             create_kpi_summary_page(pdf)
             print("   ✅ KPI summary page created")
-            
+
             # Generate visualization pages
             for viz_name in include_visualizations:
                 if viz_name not in KEY_VISUALIZATIONS:
                     print(f"\n⚠️  Unknown visualization: {viz_name}")
                     continue
-                
+
                 viz_config = KEY_VISUALIZATIONS[viz_name]
                 print(f"\n▶  Adding: {viz_config['title']}")
-                
+
                 try:
                     # Fetch data
                     df = viz_config["fetch"]()
-                    
+
                     if df.empty:
                         print(f"   ⚠️  No data, skipping...")
                         continue
+
+                    # Temporarily use DejaVu Sans for PDF compatibility
+                    plt.rcParams['font.family'] = 'DejaVu Sans'
                     
                     # Generate plot
                     fig = viz_config["plot"](df)
-                    
-                    # Add to PDF
+
+                    # Add to PDF with font embedding
                     pdf.savefig(fig, bbox_inches='tight', facecolor='white')
                     plt.close(fig)
                     
+                    # Restore font for next iteration
+                    plt.rcParams['font.family'] = original_family
+
                     print(f"   ✅ Added to report")
-                    
+
                 except Exception as e:
+                    # Restore font on error
+                    plt.rcParams['font.family'] = original_family
                     print(f"   ❌ Error: {str(e)}")
-            
+
             # Add metadata
             pdf.infodict()['Author'] = 'Retail Analytics Pipeline'
             pdf.infodict()['Subject'] = 'Business Intelligence Report'
             pdf.infodict()['Keywords'] = 'retail, analytics, BI, KPIs'
-        
+
         abs_path = os.path.abspath(output_path)
-        
+
         # Print summary
         print("\n" + "=" * 70)
         print("  PDF REPORT GENERATION COMPLETE")

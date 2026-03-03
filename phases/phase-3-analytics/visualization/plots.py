@@ -21,28 +21,29 @@ from datetime import datetime
 def setup_style() -> None:
     """Configure matplotlib and seaborn for professional-looking plots."""
     plt.style.use('seaborn-v0_8-whitegrid')
-    
+
     sns.set_palette("husl")
     sns.set_style("whitegrid")
-    
+
     plt.rcParams['figure.facecolor'] = 'white'
     plt.rcParams['axes.facecolor'] = 'white'
     plt.rcParams['axes.edgecolor'] = '#E0E0E0'
     plt.rcParams['grid.color'] = '#F0F0F0'
     plt.rcParams['axes.linewidth'] = 0.8
-    
-    plt.rcParams['font.family'] = 'Segoe UI' if os.name == 'nt' else 'sans-serif'
+
+    # Use DejaVu Sans for cross-platform compatibility (especially PDF export on Windows)
+    plt.rcParams['font.family'] = 'DejaVu Sans'
     plt.rcParams['font.size'] = 10
     plt.rcParams['axes.titlesize'] = 14
     plt.rcParams['axes.labelsize'] = 11
     plt.rcParams['xtick.labelsize'] = 9
     plt.rcParams['ytick.labelsize'] = 9
     plt.rcParams['legend.fontsize'] = 9
-    
+
     plt.rcParams['lines.linewidth'] = 2
     plt.rcParams['lines.markersize'] = 6
     plt.rcParams['patch.linewidth'] = 1.5
-    
+
     plt.rcParams['figure.figsize'] = (12, 7)
     plt.rcParams['figure.dpi'] = 120
     plt.rcParams['savefig.dpi'] = 150
