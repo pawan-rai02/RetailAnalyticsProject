@@ -1,0 +1,14 @@
+# Placeholder file to ensure directory is tracked by git
+
+# This directory stores generated analytics visualizations for documentation.
+# Run: python main.py generate-static
+# To regenerate all images.
+
+# Generated images:
+# - monthly_revenue.png
+# - top_products.png
+# - store_ranking.png
+# - clv_distribution.png
+# - category_contribution.png
+# - top_customers.png
+# - region_performance.png

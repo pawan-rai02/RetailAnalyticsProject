@@ -1,0 +1,8 @@
+# Placeholder file to ensure directory is tracked by git
+
+# This directory stores generated PDF analytics reports.
+# Run: python main.py generate-report
+# To generate a new report.
+
+# Generated reports:
+# - analytics_report.pdf

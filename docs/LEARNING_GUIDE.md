@@ -8,11 +8,12 @@
 4. [Folder-by-Folder Explanation](#folder-by-folder-explanation)
 5. [Phase 1: ETL Pipeline - Deep Dive](#phase-1-etl-pipeline---deep-dive)
 6. [Phase 2: ML Pipeline - Deep Dive](#phase-2-ml-pipeline---deep-dive)
-7. [Code Walkthrough - Every File Explained](#code-walkthrough---every-file-explained)
-8. [How Data Flows Through the System](#how-data-flows-through-the-system)
-9. [Running the Project Step-by-Step](#running-the-project-step-by-step)
-10. [Common Questions & Troubleshooting](#common-questions--troubleshooting)
-11. [Learning Path - What to Study Next](#learning-path---what-to-study-next)
+7. [Phase 3: Analytics & Visualization - Deep Dive](#phase-3-analytics--visualization-layer---deep-dive)
+8. [Code Walkthrough - Every File Explained](#code-walkthrough---every-file-explained)
+9. [How Data Flows Through the System](#how-data-flows-through-the-system)
+10. [Running the Project Step-by-Step](#running-the-project-step-by-step)
+11. [Common Questions & Troubleshooting](#common-questions--troubleshooting)
+12. [Learning Path - What to Study Next](#learning-path---what-to-study-next)
 
 ---
 
@@ -92,9 +93,9 @@ You should know how to:
 
 ## Project Overview - The Big Picture
 
-### The Two Phases
+### The Three Phases
 
-This project has **two main parts** that build on each other:
+This project has **three main parts** that build on each other:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -120,10 +121,26 @@ This project has **two main parts** that build on each other:
 │  Output: Sales forecasts for future days                        │
 │  Tools:  scikit-learn, pandas, SQLAlchemy                       │
 │                                                                 │
+│                          │                                      │
+│                          ▼                                      │
+│                                                                 │
+│  PHASE 3: Analytics & Visualization                             │
+│  ─────────────────────────────────────                          │
+│  MySQL Data → SQL KPIs → Charts → PDF Reports                   │
+│                                                                 │
+│  Input:  Sales data from Phase 1 database                       │
+│  Output: 25+ analytics functions, 7 charts, PDF report          │
+│  Tools:  SQLAlchemy, Pandas, Matplotlib, Seaborn                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+│  Output: Sales forecasts for future days                        │
+│  Tools:  scikit-learn, pandas, SQLAlchemy                       │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Why Two Phases?
+### Why Three Phases?
 
 **Phase 1** answers: "What happened in the past?"
 - Organizes historical sales data
@@ -132,6 +149,10 @@ This project has **two main parts** that build on each other:
 **Phase 2** answers: "What will happen in the future?"
 - Uses historical data to predict future sales
 - Helps with inventory planning, staffing, etc.
+
+**Phase 3** answers: "How are we performing?"
+- Provides business intelligence dashboards
+- Generates reports and visualizations for stakeholders
 
 ### Key Technologies Explained
 
@@ -143,6 +164,8 @@ This project has **two main parts** that build on each other:
 | **scikit-learn** | Machine learning library | Build and train forecasting models |
 | **SQLAlchemy** | SQL toolkit for Python | Connect to MySQL database from Python |
 | **pandas** | Data manipulation library | Work with tabular data in Python |
+| **Matplotlib** | Plotting library | Create professional charts and visualizations |
+| **Seaborn** | Statistical visualization | Generate beautiful statistical charts |
 
 ---
 
@@ -1456,6 +1479,533 @@ def predict_global_sales(model_path=None, forecast_days=7):
     
     return pd.DataFrame(predictions)
 ```
+
+---
+
+## Phase 3: Analytics & Visualization Layer - Deep Dive
+
+### What is Business Intelligence Analytics?
+
+**Goal:** Provide actionable insights from historical data through KPIs and visualizations.
+
+**Example:**
+```
+Business Question: "How are we performing?"
+
+Phase 3 Answers:
+┌─────────────────────────────────────────────────────────────┐
+│  REVENUE ANALYTICS                                          │
+│  - Total Revenue: $2,304,012                                │
+│  - Monthly Trend: +5.2% growth                              │
+│  - Weekend vs Weekday: Weekends 35% higher                  │
+├─────────────────────────────────────────────────────────────┤
+│  PRODUCT ANALYTICS                                          │
+│  - Top Product: Apple iPhone ($152,430 revenue)             │
+│  - Top Category: Technology (58% of revenue)                │
+│  - Worst Product: Paper clips ($12 revenue)                 │
+├─────────────────────────────────────────────────────────────┤
+│  CUSTOMER ANALYTICS                                         │
+│  - Top Customer: Claire Gute ($33,630 lifetime value)       │
+│  - Repeat vs New: 89% repeat customers                      │
+│  - Average Revenue per Customer: $2,905                     │
+├─────────────────────────────────────────────────────────────┤
+│  STORE ANALYTICS                                            │
+│  - Top Store: Store_1 ($892,450 revenue)                    │
+│  - Top Region: West (45% of revenue)                        │
+│  - Underperforming: Store_3 (-15% vs average)               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    PHASE 3 ARCHITECTURE                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────┐     ┌─────────────────────────────────────┐   │
+│  │   CLI       │     │         ANALYTICS MODULES            │   │
+│  │  main.py    │────▶│  ┌──────────┐ ┌──────────┐          │   │
+│  │             │     │  │ Revenue  │ │ Product  │          │   │
+│  │  Commands:  │     │  │  8 funcs │ │  8 funcs │          │   │
+│  │  - revenue  │     │  └────┬─────┘ └────┬─────┘          │   │
+│  │  - product  │     │       │            │                 │   │
+│  │  - customer │     │  ┌────┴─────┐ ┌────┴─────┐          │   │
+│  │  - store    │     │  │ Customer │ │  Store   │          │   │
+│  │             │     │  │  7 funcs │ │  8 funcs │          │   │
+│  └──────┬──────┘     │  └──────────┘ └──────────┘          │   │
+│         │            └─────────────────────────────────────┘   │
+│         │                          │                           │
+│         │         ┌────────────────┘                           │
+│         │         │                                            │
+│         ▼         ▼                                            │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              VISUALIZATION LAYER                         │   │
+│  │         visualization/plots.py                           │   │
+│  │   - Line charts (time series)                           │   │
+│  │   - Bar charts (rankings)                               │   │
+│  │   - Pie/Donut (composition)                             │   │
+│  │   - Histograms (distributions)                          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              │                                  │
+└──────────────────────────────┼──────────────────────────────────┘
+                               │
+                               ▼
+                    ┌───────────────────────┐
+                    │   MySQL Star Schema   │
+                    │   (Phase 1 Tables)    │
+                    └───────────────────────┘
+```
+
+### Key Design Principles
+
+#### 1. Separation of Concerns
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  LAYER                 RESPONSIBILITY                   │
+├─────────────────────────────────────────────────────────┤
+│  CLI (main.py)         Parse commands, display results  │
+│  Analytics Modules     SQL queries, return DataFrames   │
+│  Database Layer        Connection management            │
+│  Visualization Layer   Generate charts from DataFrames  │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Rule:** Each layer knows only about the layer directly below it.
+
+#### 2. No SQL in Visualization Layer
+
+```python
+# ✅ CORRECT: Visualization accepts DataFrame
+def plot_monthly_revenue(df: pd.DataFrame) -> plt.Figure:
+    """Create line chart from DataFrame"""
+    fig, ax = plt.subplots()
+    ax.plot(df['month_name'], df['monthly_revenue'])
+    return fig
+
+# ❌ WRONG: Don't query database in visualization
+def plot_monthly_revenue() -> plt.Figure:
+    """Don't do this!"""
+    query = "SELECT ..."  # Bad!
+    df = execute_query(query)  # Bad!
+    ...
+```
+
+#### 3. Configuration-Driven Report Generation
+
+```python
+KEY_VISUALIZATIONS = {
+    "monthly_revenue": {
+        "fetch": get_monthly_revenue_trend,    # Analytics function
+        "plot": plot_monthly_revenue,          # Plot function
+        "title": "Monthly Revenue Trend",
+        "filename": "monthly_revenue.png"
+    },
+    "top_products": { ... },
+    "store_ranking": { ... },
+    # ... more visualizations
+}
+```
+
+### Module Structure
+
+```
+phases/phase-3-analytics/
+├── main.py                      # CLI entry point
+├── requirements.txt             # Dependencies
+│
+├── db/
+│   ├── __init__.py
+│   └── connection.py            # SQLAlchemy connection
+│
+├── analytics/
+│   ├── __init__.py
+│   ├── revenue.py               # Revenue KPIs
+│   ├── product.py               # Product KPIs
+│   ├── customer.py              # Customer KPIs
+│   └── store.py                 # Store KPIs
+│
+├── visualization/
+│   ├── __init__.py
+│   └── plots.py                 # Chart generation
+│
+└── reports/
+    ├── __init__.py
+    └── static_generator.py      # PDF & image generation
+```
+
+### Analytics Functions Reference
+
+#### Revenue Analytics (`analytics/revenue.py`)
+
+| Function | Description | SQL Techniques |
+|----------|-------------|----------------|
+| `get_total_revenue()` | Overall revenue KPIs | SUM, COUNT, AVG |
+| `get_monthly_revenue_trend()` | Monthly time series | GROUP BY date |
+| `get_month_over_month_growth()` | MoM growth % | LAG window function |
+| `get_weekend_vs_weekday_sales()` | Day type analysis | CASE, percentage |
+
+**Example Query:**
+```sql
+-- Month-over-Month Growth
+WITH monthly_revenue AS (
+    SELECT 
+        d.year, d.month, d.month_name,
+        ROUND(SUM(sf.sales), 2) AS revenue
+    FROM sales_fact sf
+    INNER JOIN dim_date d ON sf.date_key = d.date_key
+    GROUP BY d.year, d.month, d.month_name
+)
+SELECT 
+    year, month, month_name, revenue,
+    LAG(revenue) OVER (ORDER BY year, month) AS prev_revenue,
+    (revenue - LAG(revenue) OVER (ORDER BY year, month)) / 
+    LAG(revenue) OVER (ORDER BY year, month) * 100 AS growth_pct
+FROM monthly_revenue
+```
+
+#### Product Analytics (`analytics/product.py`)
+
+| Function | Description | SQL Techniques |
+|----------|-------------|----------------|
+| `get_top_10_products_by_revenue()` | Best sellers | ORDER BY, LIMIT |
+| `get_category_contribution_percentage()` | Category share | CTE, percentage |
+| `get_product_affinity_analysis()` | Bought together | Self-join |
+
+**Example Query:**
+```sql
+-- Category Contribution
+WITH category_totals AS (
+    SELECT 
+        p.category,
+        ROUND(SUM(sf.sales), 2) AS category_revenue
+    FROM sales_fact sf
+    INNER JOIN dim_product p ON sf.product_key = p.product_key
+    GROUP BY p.category
+)
+SELECT 
+    category, category_revenue,
+    category_revenue * 100.0 / (SELECT SUM(category_revenue) FROM category_totals) 
+    AS contribution_pct
+FROM category_totals
+ORDER BY category_revenue DESC
+```
+
+#### Customer Analytics (`analytics/customer.py`)
+
+| Function | Description | SQL Techniques |
+|----------|-------------|----------------|
+| `get_customer_lifetime_value()` | CLV calculation | Aggregations, tiers |
+| `get_customer_segmentation()` | RFM scoring | NTILE window function |
+| `get_customer_churn_indicators()` | At-risk customers | DATEDIFF |
+
+**Example Query:**
+```sql
+-- RFM Segmentation
+WITH rfm_scores AS (
+    SELECT 
+        customer_id,
+        NTILE(4) OVER (ORDER BY recency DESC) AS r_score,
+        NTILE(4) OVER (ORDER BY frequency ASC) AS f_score,
+        NTILE(4) OVER (ORDER BY monetary ASC) AS m_score
+    FROM customer_metrics
+)
+SELECT 
+    customer_id, r_score, f_score, m_score,
+    CASE 
+        WHEN r_score >= 3 AND f_score >= 3 AND m_score >= 3 THEN 'Champions'
+        WHEN r_score = 1 AND f_score = 1 THEN 'Lost'
+        ELSE 'Regular'
+    END AS segment
+FROM rfm_scores
+```
+
+#### Store Analytics (`analytics/store.py`)
+
+| Function | Description | SQL Techniques |
+|----------|-------------|----------------|
+| `get_store_revenue_ranking()` | Store performance | RANK window function |
+| `get_region_performance()` | Regional analysis | Multiple aggregations |
+| `get_underperforming_stores()` | Problem stores | CROSS JOIN averages |
+
+### Visualization Types
+
+#### 1. Line Chart with Area Fill
+
+**Used for:** Monthly revenue trend
+
+```python
+def plot_monthly_revenue(df: pd.DataFrame) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(14, 7))
+    
+    # Line plot
+    ax.plot(df['month_name'], df['monthly_revenue'], 
+            color='#2E86AB', linewidth=2, marker='o')
+    
+    # Area fill
+    ax.fill_between(df['month_name'], df['monthly_revenue'], 
+                    alpha=0.3, color='#2E86AB')
+    
+    # Value labels
+    for idx, row in df.iterrows():
+        ax.annotate(f'${row["monthly_revenue"]:,.0f}', 
+                   (row['month_name'], row['monthly_revenue']),
+                   ha='center', va='bottom')
+    
+    return fig
+```
+
+#### 2. Horizontal Bar Chart
+
+**Used for:** Top products, top customers
+
+```python
+def plot_top_products(df: pd.DataFrame) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Reverse for better visualization
+    df = df.iloc[::-1]
+    
+    # Horizontal bars with category colors
+    bars = ax.barh(df['product_name'], df['total_revenue'],
+                   color=category_colors)
+    
+    # Value labels
+    for bar, revenue in zip(bars, df['total_revenue']):
+        ax.annotate(f'${revenue:,.0f}',
+                   xy=(bar.get_width(), bar.get_y() + bar.get_height()/2),
+                   xytext=(5, 0), textcoords='offset points')
+    
+    return fig
+```
+
+#### 3. Donut + Bar Combo
+
+**Used for:** Category contribution
+
+```python
+def plot_category_contribution(df: pd.DataFrame) -> plt.Figure:
+    fig = plt.figure(figsize=(12, 7))
+    gs = GridSpec(1, 2, figure=fig)
+    
+    # Donut chart (left)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax1.pie(df['revenue_contribution_pct'], 
+            labels=df['category'],
+            autopct='%1.1f%%')
+    
+    # Bar chart (right)
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax2.barh(df['category'], df['category_revenue'])
+    
+    return fig
+```
+
+#### 4. Histogram with KDE
+
+**Used for:** CLV distribution
+
+```python
+def plot_clv_distribution(df: pd.DataFrame) -> plt.Figure:
+    fig = plt.figure(figsize=(14, 7))
+    gs = GridSpec(2, 2, figure=fig)
+    
+    ax = fig.add_subplot(gs[0, :])
+    
+    # Histogram with KDE overlay
+    sns.histplot(df['total_revenue'].astype(float), 
+                 kde=True, ax=ax, color='#2E86AB')
+    
+    # Statistics panel
+    stats_ax = fig.add_subplot(gs[1, 0])
+    stats_ax.text(0, 0.5, 
+        f"Mean: ${df['total_revenue'].mean():,.2f}\n"
+        f"Median: ${df['total_revenue'].median():,.2f}")
+    
+    return fig
+```
+
+### Static Report Generation
+
+#### generate-static Command
+
+**Purpose:** Generate documentation images automatically
+
+```bash
+python main.py generate-static
+```
+
+**What it does:**
+1. Creates `docs/images/` directory
+2. Fetches data for 7 key visualizations
+3. Generates PNG files
+4. Prints confirmation and README snippet
+
+**Generated files:**
+- `monthly_revenue.png`
+- `top_products.png`
+- `store_ranking.png`
+- `clv_distribution.png`
+- `category_contribution.png`
+- `top_customers.png`
+- `region_performance.png`
+
+#### generate-report Command
+
+**Purpose:** Create PDF analytics report
+
+```bash
+python main.py generate-report
+```
+
+**What it does:**
+1. Creates title page with metadata
+2. Adds KPI summary page
+3. Adds 7 visualization pages
+4. Saves to `reports/analytics_report.pdf`
+
+**Report structure:**
+1. Title page
+2. KPI summary
+3. Monthly revenue trend
+4. Top 10 products
+5. Store ranking
+6. CLV distribution
+7. Category contribution
+8. Top 10 customers
+9. Region performance
+
+**Implementation:**
+```python
+from matplotlib.backends.backend_pdf import PdfPages
+
+def generate_pdf_report(output_path="reports/report.pdf"):
+    with PdfPages(output_path) as pdf:
+        # Title page
+        create_title_page(pdf)
+        
+        # KPI summary page
+        create_kpi_summary_page(pdf)
+        
+        # Add visualizations
+        for viz_name, viz_config in KEY_VISUALIZATIONS.items():
+            df = viz_config["fetch"]()
+            fig = viz_config["plot"](df)
+            pdf.savefig(fig)
+            plt.close(fig)
+```
+
+### Running Phase 3
+
+#### Step 1: Install Dependencies
+
+```bash
+cd phases/phase-3-analytics
+pip install -r requirements.txt
+```
+
+#### Step 2: Generate Documentation Images
+
+```bash
+python main.py generate-static
+```
+
+**Output:**
+```
+======================================================================
+  GENERATING STATIC IMAGES FOR DOCUMENTATION
+======================================================================
+
+📁 Output directory: docs/images
+📊 Visualizations to generate: 7
+----------------------------------------------------------------------
+
+▶  Generating: Monthly Revenue Trend
+   ✅ Data fetched: 48 rows
+   ✅ Saved: monthly_revenue.png
+
+▶  Generating: Top 10 Products by Revenue
+   ✅ Data fetched: 10 rows
+   ✅ Saved: top_products.png
+
+... (continues for all 7 visualizations)
+
+======================================================================
+  GENERATION SUMMARY
+======================================================================
+  ✅ Successful: 7
+  ❌ Failed:     0
+  ⏭️  Skipped:    0
+======================================================================
+```
+
+#### Step 3: Generate PDF Report
+
+```bash
+python main.py generate-report
+```
+
+**Output:**
+```
+======================================================================
+  GENERATING PDF ANALYTICS REPORT
+======================================================================
+
+📄 Output file: reports/analytics_report.pdf
+📊 Visualizations to include: 7
+----------------------------------------------------------------------
+
+▶  Creating title page...
+   ✅ Title page created
+
+▶  Creating KPI summary page...
+   ✅ KPI summary page created
+
+▶  Adding: Monthly Revenue Trend
+   ✅ Added to report
+
+... (continues for all visualizations)
+
+======================================================================
+  PDF REPORT GENERATION COMPLETE
+======================================================================
+
+✅ Report saved to: reports/analytics_report.pdf
+📊 Total pages: 9
+======================================================================
+```
+
+#### Step 4: Run Individual Analytics
+
+```bash
+# Revenue analytics
+python main.py revenue total
+python main.py revenue monthly --plot
+
+# Product analytics
+python main.py product top10 --plot
+python main.py product category
+
+# Customer analytics
+python main.py customer clv --plot
+python main.py customer top10
+
+# Store analytics
+python main.py store ranking --plot
+python main.py store region
+```
+
+### Key Achievements
+
+| Metric | Value |
+|--------|-------|
+| **Analytics Functions** | 31 functions |
+| **Visualizations** | 10+ chart types |
+| **SQL Queries** | All use star schema JOINs |
+| **Window Functions** | LAG, RANK, NTILE |
+| **CLI Commands** | 4 new commands |
+| **Generated Assets** | 7 PNG + 1 PDF |
 
 ---
 

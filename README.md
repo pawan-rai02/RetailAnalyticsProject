@@ -1,6 +1,44 @@
 # 🚀 Retail Analytics Data Engineering Pipeline
 
-A production-grade data engineering pipeline built with **PySpark** that transforms raw retail data into a MySQL star schema data warehouse. This project demonstrates real-world ETL challenges and their solutions.
+> **📊 END-TO-END DATA ENGINEERING SOLUTION**
+> 
+> A production-grade 3-phase pipeline that transforms raw retail data into actionable business intelligence. Built with **PySpark** for ETL, **MySQL** for warehousing, **scikit-learn** for forecasting, and **Matplotlib** for analytics dashboards. Processes **9,994 transactions** across **5 dimension tables**, delivers **25+ KPIs**, **7 visualizations**, and **automated PDF reports**.
+> 
+> **🎯 Skills Demonstrated:** PySpark | SQL | MySQL | Data Warehousing | Star Schema | ETL/ELT | Machine Learning | Time-Series Forecasting | Data Visualization | Python | scikit-learn | Matplotlib | Seaborn | Docker | CI/CD
+
+---
+
+## ⚡ Quick Stats (30-Second Overview)
+
+| Metric | Value | Business Impact |
+|--------|-------|-----------------|
+| **Data Processed** | 9,994 transactions | 100% data retention, 0 loss |
+| **Data Quality** | 7 date formats parsed | 3,850 rows saved from rejection |
+| **Warehouse Tables** | 5 dimensions + 1 fact | Optimized for analytics queries |
+| **ML Forecasting** | 1,237 days of data | MAE: $1,695, RMSE: $2,430 |
+| **Analytics KPIs** | 31 pre-built functions | Revenue, Product, Customer, Store |
+| **Visualizations** | 7 charts + PDF reports | Auto-generated for stakeholders |
+| **Pipeline Duration** | ~90 seconds (Phase 1) | Production-ready performance |
+
+---
+
+## 🚀 Quick Start (Run in 5 Minutes)
+
+```bash
+# 1. Start MySQL
+docker run -d --name mysql_retail -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=retail_db -p 3306:3306 mysql:8.0
+
+# 2. Run Phase 1: ETL Pipeline
+cd phases/phase-1-etl && pip install -r requirements.txt && python main.py
+
+# 3. Run Phase 2: ML Forecasting
+cd ../phase-2-ml && pip install -r requirements.txt && python ml/main.py train global
+
+# 4. Run Phase 3: Analytics & Visualizations
+cd ../phase-3-analytics && pip install -r requirements.txt && python main.py generate-all
+```
+
+**📄 Generated Outputs:** 7 PNG charts in `docs/images/` + PDF report in `reports/`
 
 ---
 
@@ -13,10 +51,19 @@ This pipeline extracts raw retail transaction data from CSV files, transforms it
 ### High-Level Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   EXTRACT   │────▶│  TRANSFORM   │────▶│    LOAD     │
-│  CSV (9,994)│     │   PySpark    │     │   MySQL     │
-└─────────────┘     └──────────────┘     └─────────────┘
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   EXTRACT   │────▶│  TRANSFORM   │────▶│    LOAD     │────▶│   ANALYZE   │────▶│  VISUALIZE  │
+│  CSV (9,994)│     │   PySpark    │     │   MySQL     │     │   SQL KPIs  │     │  Matplotlib │
+└─────────────┘     └──────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+     Phase 1              Phase 1           Phase 1            Phase 3             Phase 3
+                                              │
+                                              ▼
+                                         ┌─────────────┐
+                                         │  FORECAST   │
+                                         │   scikit    │
+                                         │   learn     │
+                                         └─────────────┘
+                                              Phase 2
 ```
 
 ### Technologies Used
@@ -25,6 +72,9 @@ This pipeline extracts raw retail transaction data from CSV files, transforms it
 |-------|------------|---------|
 | **Processing Engine** | Apache Spark (PySpark) | 4.1+ |
 | **Data Warehouse** | MySQL | 8.0 |
+| **Machine Learning** | scikit-learn | 1.6+ |
+| **Analytics Layer** | SQLAlchemy, Pandas | Latest |
+| **Visualization** | Matplotlib, Seaborn | Latest |
 | **Orchestration** | Python | 3.8+ |
 | **Containerization** | Docker | Latest |
 | **JDBC Driver** | MySQL Connector/J | 9.6.0 |
@@ -67,11 +117,13 @@ For detailed architecture documentation, see [docs/phase-1/architecture.md](docs
 | **Data Processing** | PySpark 4.1 | Distributed ETL transformations |
 | **Data Warehouse** | MySQL 8.0 | Star schema storage |
 | **Machine Learning** | scikit-learn 1.6+ | Time-series forecasting |
+| **Analytics Layer** | SQLAlchemy, Pandas | SQL-based KPI computation |
+| **Visualization** | Matplotlib, Seaborn | Professional chart generation |
 | **Orchestration** | Python 3.8+ | Pipeline coordination |
 | **Runtime** | Docker | MySQL containerization |
 | **Connectivity** | JDBC, SQLAlchemy | Database connections |
 | **Logging** | Python logging | Execution tracking |
-| **CLI** | Typer | User-friendly commands |
+| **CLI** | argparse | User-friendly commands |
 
 ---
 
@@ -85,23 +137,41 @@ RetailAnalyticsProject/
 │   │   ├── README.md          # Full Phase 1 documentation
 │   │   ├── problems_faced.md  # Challenges & solutions
 │   │   └── architecture.md    # Technical architecture
-│   └── phase-2/               # Phase 2 detailed docs
-│       ├── README.md          # Full Phase 2 documentation
-│       ├── problems_faced.md  # ML challenges & solutions
-│       └── architecture.md    # ML pipeline architecture
+│   ├── phase-2/               # Phase 2 detailed docs
+│   │   ├── README.md          # Full Phase 2 documentation
+│   │   ├── problems_faced.md  # ML challenges & solutions
+│   │   └── architecture.md    # ML pipeline architecture
+│   └── phase-3/               # Phase 3 detailed docs
+│       ├── architecture.md    # Analytics layer architecture
+│       └── visuals/           # Generated visualization samples
 │
 ├── phases/
 │   ├── phase-1-etl/           # Phase 1: Batch ETL with PySpark
 │   │   ├── main.py            # ETL orchestration
 │   │   ├── etl/               # PySpark transformations
 │   │   ├── warehouse/         # MySQL schema
-│   │   └── config/            # Configuration
-│   └── phase-2-ml/            # Phase 2: ML Forecasting
-│       ├── ml/                # ML pipeline source
-│       │   ├── modeling/      # Model implementations
-│       │   ├── tasks/         # Train/Evaluate/Predict
-│       │   └── models/        # Trained model artifacts
-│       └── requirements.txt   # ML dependencies
+│   │   ├── config/            # Configuration
+│   │   └── data/              # Input CSV files
+│   │
+│   ├── phase-2-ml/            # Phase 2: ML Forecasting
+│   │   ├── ml/                # ML pipeline source
+│   │   │   ├── modeling/      # Model implementations
+│   │   │   ├── tasks/         # Train/Evaluate/Predict
+│   │   │   └── models/        # Trained model artifacts
+│   │   └── requirements.txt   # ML dependencies
+│   │
+│   └── phase-3-analytics/     # Phase 3: Analytics & Visualization
+│       ├── main.py            # CLI entry point
+│       ├── analytics/         # KPI computation modules
+│       │   ├── revenue.py     # Revenue analytics
+│       │   ├── product.py     # Product analytics
+│       │   ├── customer.py    # Customer analytics
+│       │   └── store.py       # Store & region analytics
+│       ├── db/                # Database layer
+│       │   └── connection.py  # SQLAlchemy connection
+│       ├── visualization/     # Plot generation
+│       │   └── plots.py       # Matplotlib/Seaborn charts
+│       └── requirements.txt   # Analytics dependencies
 │
 ├── data/                      # Raw input CSV files
 └── jars/                      # JDBC drivers
@@ -175,6 +245,135 @@ python ml/main.py predict global -d 7
 
 ---
 
+### Phase 3 – Analytics & Visualization Layer ✅
+
+**Status:** Complete
+
+A business intelligence analytics layer that queries the MySQL star schema using SQL, computes retail KPIs, and generates professional visualizations.
+
+**Key Features:**
+- **25+ Pre-built Analytics** across Revenue, Product, Customer, and Store domains
+- **Professional Visualizations** with publication-quality styling
+- **CLI Interface** for easy execution
+- **Modular Architecture** with separation of concerns
+- **Window Functions** for advanced analytics (MoM growth, rankings, cohorts)
+- **PDF Report Generation** - Automatic analytics reports
+
+**Analytics Modules:**
+
+| Module | Functions | Visualizations |
+|--------|-----------|----------------|
+| **Revenue** | 8 functions | Monthly trend, Yearly comparison, Weekend vs Weekday |
+| **Product** | 8 functions | Top products, Category contribution |
+| **Customer** | 7 functions | CLV distribution, Top customers, RFM segmentation |
+| **Store** | 8 functions | Store ranking, Region performance |
+
+**Generated Visualizations:**
+
+📊 **Monthly Revenue Trend**
+```bash
+python main.py revenue monthly --plot
+```
+![Monthly Revenue Trend](docs/images/monthly_revenue.png)
+*Revenue trajectory over time showing growth patterns and seasonal trends.*
+
+---
+
+🏆 **Top Products by Revenue**
+```bash
+python main.py product top10 --plot
+```
+![Top Products](docs/images/top_products.png)
+*Best-selling products ranked by total revenue with category breakdown.*
+
+---
+
+🏬 **Store Revenue Ranking**
+```bash
+python main.py store ranking --plot
+```
+![Store Ranking](docs/images/store_ranking.png)
+*Store performance comparison with regional revenue distribution.*
+
+---
+
+👥 **Customer Lifetime Value Distribution**
+```bash
+python main.py customer clv --plot
+```
+![CLV Distribution](docs/images/clv_distribution.png)
+*Customer value distribution showing segmentation and tier composition.*
+
+---
+
+📦 **Category Revenue Contribution**
+```bash
+python main.py product category --plot
+```
+![Category Contribution](docs/images/category_contribution.png)
+*Revenue share by product category with percentage breakdown.*
+
+---
+
+🌟 **Top 10 Customers**
+```bash
+python main.py customer top10 --plot
+```
+![Top Customers](docs/images/top_customers.png)
+*VIP customers ranked by total revenue contribution.*
+
+---
+
+🗺️ **Region Performance Dashboard**
+```bash
+python main.py store region --plot
+```
+![Region Performance](docs/images/region_performance.png)
+*Multi-metric regional analysis including revenue, profit, and margins.*
+
+---
+
+**Quick Start:**
+```bash
+cd phases/phase-3-analytics
+pip install -r requirements.txt
+
+# List all available commands
+python main.py list
+
+# Generate documentation images
+python main.py generate-static
+
+# Generate PDF analytics report
+python main.py generate-report
+
+# Revenue analytics
+python main.py revenue monthly
+python main.py revenue monthly --plot
+
+# Product analytics
+python main.py product top10 --plot
+python main.py product category
+
+# Customer analytics
+python main.py customer clv --plot
+python main.py customer top10
+
+# Store analytics
+python main.py store ranking --plot
+python main.py store region
+
+# Run all analytics with plots
+python main.py all --plot
+```
+
+**Documentation:**
+- [Phase 3 Architecture](docs/phase-3/architecture.md)
+- [Phase 3 README](docs/phase-3/readme_phase3.md)
+- [Static Report Generation](docs/phase-3/static_report_generation.md)
+
+---
+
 ## 🎯 Key Achievements
 
 ### Phase 1: ETL Pipeline
@@ -218,6 +417,7 @@ python ml/main.py predict global -d 7
 # 1. Install dependencies
 pip install -r phases/phase-1-etl/requirements.txt
 pip install -r phases/phase-2-ml/requirements.txt
+pip install -r phases/phase-3-analytics/requirements.txt
 
 # 2. Start MySQL in Docker
 docker run -d --name mysql_retail \
@@ -237,6 +437,14 @@ cd ../phase-2-ml
 python ml/main.py train global
 python ml/main.py evaluate global
 python ml/main.py predict global -d 7
+
+# 6. Run Phase 3 Analytics
+cd ../phase-3-analytics
+python main.py list
+python main.py revenue monthly --plot
+python main.py product top10 --plot
+python main.py customer clv --plot
+python main.py store ranking --plot
 ```
 
 ---
@@ -296,6 +504,16 @@ Solution: Run Phase 1 ETL first, then run:
 4. **Feature importance > accuracy** - Linear models provide interpretable coefficients
 5. **Baseline first** - Start simple (Linear Regression) before complex models
 6. **Data quality matters** - Phase 1 ETL quality directly impacts ML performance
+
+### Phase 3: Analytics & Visualization
+
+1. **Separation of concerns** - Keep SQL, analytics logic, and visualization completely separate
+2. **No SQL in visualization layer** - Visualizations should only accept DataFrames
+3. **Window functions are powerful** - Use for MoM growth, rankings, and cohort analysis
+4. **Professional styling matters** - Invest time in making charts publication-ready
+5. **CLI usability** - Make commands intuitive and provide helpful error messages
+6. **Modular design** - Each analytics module should be independently testable
+7. **Documentation first** - Write clear docstrings for every function
 
 ---
 

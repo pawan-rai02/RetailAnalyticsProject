@@ -1,0 +1,14 @@
+# Phase 3 - Analytics & Visualization Layer
+# Dependencies for querying MySQL star schema and generating visualizations
+
+# Database Connectivity
+SQLAlchemy>=2.0.0
+PyMySQL>=1.1.0
+pandas>=2.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Utilities
+numpy>=1.24.0
