@@ -66,10 +66,12 @@ For detailed architecture documentation, see [docs/phase-1/architecture.md](docs
 |-----------|------------|---------|
 | **Data Processing** | PySpark 4.1 | Distributed ETL transformations |
 | **Data Warehouse** | MySQL 8.0 | Star schema storage |
+| **Machine Learning** | scikit-learn 1.6+ | Time-series forecasting |
 | **Orchestration** | Python 3.8+ | Pipeline coordination |
 | **Runtime** | Docker | MySQL containerization |
-| **Connectivity** | JDBC | Spark-MySQL communication |
+| **Connectivity** | JDBC, SQLAlchemy | Database connections |
 | **Logging** | Python logging | Execution tracking |
+| **CLI** | Typer | User-friendly commands |
 
 ---
 
@@ -79,25 +81,30 @@ For detailed architecture documentation, see [docs/phase-1/architecture.md](docs
 RetailAnalyticsProject/
 │
 ├── docs/                      # Documentation
-│   └── phase-1/               # Phase 1 detailed docs
-│       ├── README.md          # Full Phase 1 documentation
-│       ├── problems_faced.md  # Challenges & solutions
-│       └── architecture.md    # Technical architecture
+│   ├── phase-1/               # Phase 1 detailed docs
+│   │   ├── README.md          # Full Phase 1 documentation
+│   │   ├── problems_faced.md  # Challenges & solutions
+│   │   └── architecture.md    # Technical architecture
+│   └── phase-2/               # Phase 2 detailed docs
+│       ├── README.md          # Full Phase 2 documentation
+│       ├── problems_faced.md  # ML challenges & solutions
+│       └── architecture.md    # ML pipeline architecture
+│
+├── phases/
+│   ├── phase-1-etl/           # Phase 1: Batch ETL with PySpark
+│   │   ├── main.py            # ETL orchestration
+│   │   ├── etl/               # PySpark transformations
+│   │   ├── warehouse/         # MySQL schema
+│   │   └── config/            # Configuration
+│   └── phase-2-ml/            # Phase 2: ML Forecasting
+│       ├── ml/                # ML pipeline source
+│       │   ├── modeling/      # Model implementations
+│       │   ├── tasks/         # Train/Evaluate/Predict
+│       │   └── models/        # Trained model artifacts
+│       └── requirements.txt   # ML dependencies
 │
 ├── data/                      # Raw input CSV files
-├── etl/                       # PySpark ETL modules
-│   ├── transformations.py     # Data cleaning & transformation
-│   ├── dimension_loader.py    # Dimension table loaders
-│   └── fact_loader.py         # Fact table loader
-├── warehouse/                 # MySQL DDL scripts
-│   ├── schema.sql             # Star schema DDL
-│   └── init_db.py             # Database initialization
-├── config/                    # Configuration files
-│   └── config.py              # DB credentials, Spark settings
-├── logs/                      # Pipeline execution logs
-├── jars/                      # JDBC drivers
-├── main.py                    # Main orchestration script
-└── requirements.txt           # Python dependencies
+└── jars/                      # JDBC drivers
 ```
 
 ---
@@ -124,21 +131,53 @@ A production-grade batch ETL pipeline that processes 9,994 retail transactions t
 
 ---
 
-### Phase 2 – ML Layer (Coming Soon) 🔜
+### Phase 2 – ML Forecasting Layer ✅
 
-**Status:** Planned
+**Status:** Complete
 
-Future enhancement to add machine learning capabilities for sales forecasting and customer segmentation.
+A machine learning pipeline that builds on the Phase 1 data warehouse to forecast future daily sales using time-series features.
 
-**Planned Features:**
-- Sales forecasting models
-- Customer segmentation analysis
-- Product affinity recommendations
-- Time-series anomaly detection
+**Key Metrics:**
+- **Data Loaded:** 1,237 days of sales (2014-2017)
+- **Training Samples:** 965 days (80%)
+- **Test Samples:** 242 days (20%)
+- **Best Model:** Linear Regression
+- **MAE:** $1,695.27
+- **RMSE:** $2,430.97
+- **R²:** 0.0184
+
+**Features:**
+- Time-series feature engineering (lag, rolling, date features)
+- Chronological train-test split (no data leakage)
+- Model comparison (Linear Regression vs Random Forest)
+- Recursive multi-day forecasting
+- CLI interface for train/evaluate/predict
+
+**Documentation:**
+- [Full Phase 2 Details](docs/phase-2/readme_phase2.md)
+- [ML Challenges & Solutions](docs/phase-2/problems_faced.md)
+- [ML Pipeline Architecture](docs/phase-2/architecture.md)
+
+**Quick Start:**
+```bash
+cd phases/phase-2-ml
+pip install -r requirements.txt
+
+# Train models
+python ml/main.py train global
+
+# Evaluate
+python ml/main.py evaluate global
+
+# Forecast 7 days
+python ml/main.py predict global -d 7
+```
 
 ---
 
 ## 🎯 Key Achievements
+
+### Phase 1: ETL Pipeline
 
 | Metric | Value |
 |--------|-------|
@@ -149,6 +188,18 @@ Future enhancement to add machine learning capabilities for sales forecasting an
 | **Data Quality Issues Resolved** | 3,850 rows saved |
 | **Dimension Tables** | 5 (4,750 total rows) |
 | **Foreign Key Integrity** | 100% verified |
+
+### Phase 2: ML Forecasting
+
+| Metric | Value |
+|--------|-------|
+| **Days of Data** | 1,237 (2014-2017) |
+| **Features Engineered** | 7 (lag, rolling, date) |
+| **Models Trained** | 2 (Linear Regression, Random Forest) |
+| **Best Model** | Linear Regression |
+| **MAE** | $1,695.27 |
+| **RMSE** | $2,430.97 |
+| **Training Time** | ~1.5 seconds |
 
 ---
 
@@ -165,7 +216,8 @@ Future enhancement to add machine learning capabilities for sales forecasting an
 
 ```bash
 # 1. Install dependencies
-pip install -r requirements.txt
+pip install -r phases/phase-1-etl/requirements.txt
+pip install -r phases/phase-2-ml/requirements.txt
 
 # 2. Start MySQL in Docker
 docker run -d --name mysql_retail \
@@ -174,10 +226,17 @@ docker run -d --name mysql_retail \
   -p 3306:3306 \
   mysql:8.0
 
-# 3. Place dataset at data/superstore.csv
+# 3. Place dataset at phases/phase-1-etl/data/superstore.csv
 
-# 4. Run the pipeline
+# 4. Run Phase 1 ETL pipeline
+cd phases/phase-1-etl
 python main.py
+
+# 5. Run Phase 2 ML pipeline
+cd ../phase-2-ml
+python ml/main.py train global
+python ml/main.py evaluate global
+python ml/main.py predict global -d 7
 ```
 
 ---
@@ -195,21 +254,31 @@ docker exec mysql_retail mysql -uroot -proot -e "SELECT 1"
 
 ### CSV Not Found
 ```
-Place the Superstore CSV at: data/superstore.csv
+Place the Superstore CSV at: phases/phase-1-etl/data/superstore.csv
 ```
 
 ### Spark Memory Error
 ```python
-# Increase memory in config/config.py
+# Increase memory in phases/phase-1-etl/config/config.py
 SPARK_CONFIG = {
     "executorMemory": "4g",
     "driverMemory": "4g"
 }
 ```
 
+### ML Model Not Found
+```
+Error: Model file not found
+Solution: Run Phase 1 ETL first, then run:
+  cd phases/phase-2-ml
+  python ml/main.py train global
+```
+
 ---
 
 ## 📈 Lessons Learned
+
+### Phase 1: ETL
 
 1. **Always use `try_cast()`** for CSV data - real-world data is dirty
 2. **Never use `toPandas()`** in production Spark pipelines on Windows
@@ -218,6 +287,15 @@ SPARK_CONFIG = {
 5. **NULLable columns** > lost rows (log data quality issues, don't drop data)
 6. **Spark 4.x strict typing** requires explicit casts at every stage
 7. **Test with full dataset early** - sampling hides data quality issues
+
+### Phase 2: ML
+
+1. **Chronological splits are critical** - Random shuffle causes data leakage in time-series
+2. **Shift before rolling** - Prevents future data from leaking into features
+3. **Recursive prediction complexity** - Each prediction compounds errors
+4. **Feature importance > accuracy** - Linear models provide interpretable coefficients
+5. **Baseline first** - Start simple (Linear Regression) before complex models
+6. **Data quality matters** - Phase 1 ETL quality directly impacts ML performance
 
 ---
 
