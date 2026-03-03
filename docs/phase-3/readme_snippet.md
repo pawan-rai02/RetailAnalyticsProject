@@ -6,7 +6,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 📈 Monthly Revenue Trend
 
-![Monthly Revenue Trend](docs/images/monthly_revenue.png)
+![Monthly Revenue Trend](../../docs/images/monthly_revenue.png)
 
 *Revenue trajectory over time showing growth patterns, seasonal trends, and month-over-month changes. Includes summary statistics panel.*
 
@@ -14,7 +14,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 🏆 Top 10 Products by Revenue
 
-![Top Products](docs/images/top_products.png)
+![Top Products](../../docs/images/top_products.png)
 
 *Best-selling products ranked by total revenue with category color coding. Shows product performance and category distribution.*
 
@@ -22,7 +22,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 🏬 Store Revenue Ranking
 
-![Store Ranking](docs/images/store_ranking.png)
+![Store Ranking](../../docs/images/store_ranking.png)
 
 *Store performance comparison showing top 15 stores by revenue with gradient coloring. Includes regional revenue distribution pie chart.*
 
@@ -30,7 +30,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 👥 Customer Lifetime Value Distribution
 
-![CLV Distribution](docs/images/clv_distribution.png)
+![CLV Distribution](../../docs/images/clv_distribution.png)
 
 *Histogram with KDE overlay showing customer value distribution. Includes statistics panel and customer tier breakdown (Platinum, Gold, Silver, Bronze).*
 
@@ -38,7 +38,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 📦 Category Revenue Contribution
 
-![Category Contribution](docs/images/category_contribution.png)
+![Category Contribution](../../docs/images/category_contribution.png)
 
 *Combined donut chart and horizontal bar chart showing revenue share by product category with percentage breakdown.*
 
@@ -46,7 +46,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 🌟 Top 10 Customers
 
-![Top Customers](docs/images/top_customers.png)
+![Top Customers](../../docs/images/top_customers.png)
 
 *VIP customers ranked by total revenue contribution with segment color coding (Consumer, Corporate, Home Office).*
 
@@ -54,7 +54,7 @@ The following visualizations are automatically generated from the retail data wa
 
 ### 🗺️ Region Performance Dashboard
 
-![Region Performance](docs/images/region_performance.png)
+![Region Performance](../../docs/images/region_performance.png)
 
 *Multi-panel grid showing regional performance across four metrics: total revenue, total profit, profit margin percentage, and revenue per store.*
 
